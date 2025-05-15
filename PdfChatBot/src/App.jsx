@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSun, FiMoon, FiUpload } from 'react-icons/fi';
+import { FiSun, FiMoon, FiUpload, FiSend } from 'react-icons/fi';
+import FormattedResponse from './components/FormattedResponse';
 
 function App() {
   const [file, setFile] = useState(null);
@@ -8,7 +9,7 @@ function App() {
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState('dark');
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -99,11 +100,11 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${
-      theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+    <div className={`min-h-screen font-['Fira_Code','Fira_Mono',Menlo,Consolas,'DejaVu_Sans_Mono',monospace] transition-colors duration-300 ${
+      theme === 'dark' ? 'bg-[#262624]' : 'bg-[#F4F2F0]'
     }`}>
       <nav className={`fixed w-full top-0 z-50 transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        theme === 'dark' ? 'bg-[#2A2A28]' : 'bg-[#FFFFFF]'
       } shadow-lg`}>
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex flex-wrap items-center justify-between h-auto py-2 sm:h-16">
@@ -113,26 +114,37 @@ function App() {
                 animate={{ opacity: 1, x: 0 }}
                 className="flex items-center"
               >
-                <h1 className={`text-lg sm:text-2xl font-bold ${
-                  theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
-                }`}>DocuMind</h1>
+                <motion.h1 
+                  className={`text-lg sm:text-2xl font-bold ${
+                    theme === 'dark' ? 'text-[#61DAFB]' : 'text-[#0074D9]'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  QurioAI
+                </motion.h1>
               </motion.div>
             </div>
 
-            <div className={`flex-1 text-center mx-2 text-sm sm:text-base ${
-              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-            }`}>
+            <motion.div 
+              className={`flex-1 text-center mx-2 text-sm sm:text-base ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+              }`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
               Crafted by Shubham with love ♡
-            </div>
+            </motion.div>
 
             <div className="flex items-center space-x-2 sm:space-x-4">
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.05, rotate: theme === 'dark' ? 15 : -15 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 className={`p-1.5 sm:p-2 rounded-full ${
-                  theme === 'dark' ? 'bg-gray-700 text-yellow-400' : 'bg-gray-200 text-gray-600'
-                }`}
+                  theme === 'dark' ? 'bg-[#3A3A38] text-yellow-400' : 'bg-gray-200 text-gray-600'
+                } transition-all duration-300`}
               >
                 {theme === 'dark' ? <FiSun size={16} className="sm:w-5 sm:h-5" /> : <FiMoon size={16} className="sm:w-5 sm:h-5" />}
               </motion.button>
@@ -141,10 +153,17 @@ function App() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg cursor-pointer text-sm sm:text-base ${
-                  theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'
-                } text-white`}
+                  theme === 'dark' 
+                    ? 'bg-[#3A3A38] hover:bg-[#4A4A48] text-[#61DAFB] border border-[#4A4A48]' 
+                    : 'bg-[#0074D9] hover:bg-[#0063B8] text-white'
+                } transition-all duration-200`}
               >
-                <FiUpload size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <motion.div
+                  whileHover={{ rotate: 15 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <FiUpload size={16} className="sm:w-[18px] sm:h-[18px]" />
+                </motion.div>
                 <span className="whitespace-nowrap">Upload PDF</span>
                 <input
                   type="file"
@@ -186,23 +205,33 @@ function App() {
                 transition={{ 
                   duration: 0.3,
                   ease: "easeOut",
-                  delay: index * 0.05 // Reduced delay for better performance
+                  delay: index * 0.05
                 }}
                 className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`max-w-[80%] rounded-lg p-4 ${
-                  message.type === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : message.type === 'assistant'
-                    ? theme === 'dark' 
-                      ? 'bg-gray-800 text-gray-100 border border-gray-700' 
-                      : 'bg-white text-gray-800 shadow-md'
-                    : theme === 'dark'
-                      ? 'bg-yellow-500/20 text-yellow-200'
-                      : 'bg-yellow-500/20 text-yellow-800'
-                }`}>
-                  {message.content}
-                </div>
+                <motion.div 
+                  className={`max-w-[80%] rounded-lg p-4 ${
+                    message.type === 'user'
+                      ? theme === 'dark' 
+                        ? 'bg-[#3A3A38] text-[#61DAFB] border border-[#4A4A48]' 
+                        : 'bg-[#0074D9] text-white'
+                      : message.type === 'assistant'
+                      ? theme === 'dark' 
+                        ? 'bg-[#3A3A38] text-gray-100 border border-[#4A4A48]' 
+                        : 'bg-white text-gray-800 shadow-md'
+                      : theme === 'dark'
+                        ? 'bg-yellow-500/20 text-yellow-200'
+                        : 'bg-yellow-500/20 text-yellow-800'
+                  }`}
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  {message.type === 'assistant' ? (
+                    <FormattedResponse text={message.content} theme={theme} />
+                  ) : (
+                    message.content
+                  )}
+                </motion.div>
               </motion.div>
             ))}
             <div ref={messagesEndRef} />
@@ -231,7 +260,7 @@ function App() {
                     ease: "easeInOut"
                   }}
                   className={`w-3 h-3 rounded-full ${
-                    theme === 'dark' ? 'bg-blue-400' : 'bg-blue-500'
+                    theme === 'dark' ? 'bg-[#61DAFB]' : 'bg-[#0074D9]'
                   }`}
                 />
               ))}
@@ -241,11 +270,12 @@ function App() {
       </div>
 
       <div className={`fixed bottom-0 left-0 right-0 ${
-        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        theme === 'dark' ? 'bg-[#2A2A28]' : 'bg-white'
       } shadow-lg`}>
         <div className="max-w-4xl mx-auto p-4">
           <form onSubmit={handleSubmit} className="flex space-x-4">
-            <input
+            <motion.input
+              whileFocus={{ scale: 1.01 }}
               type="text"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
@@ -253,24 +283,30 @@ function App() {
               disabled={!file || loading}
               className={`flex-1 p-3 rounded-lg transition-colors duration-300 ${
                 theme === 'dark'
-                  ? 'bg-gray-700 text-gray-100 placeholder-gray-400'
-                  : 'bg-gray-100 text-gray-900 placeholder-gray-500'
+                  ? 'bg-[#3A3A38] text-gray-100 placeholder-gray-400 border border-[#4A4A48]'
+                  : 'bg-[#F4F2F0] text-gray-900 placeholder-gray-500'
               } focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={!file || loading || !question.trim()}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
                 !file || loading || !question.trim()
                   ? 'bg-gray-400 cursor-not-allowed'
                   : theme === 'dark'
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'bg-blue-500 hover:bg-blue-600'
-              } text-white`}
+                  ? 'bg-[#3A3A38] hover:bg-[#4A4A48] text-[#61DAFB] border border-[#4A4A48]'
+                  : 'bg-[#0074D9] hover:bg-[#0063B8] text-white'
+              }`}
             >
-              Send
+              <span>Send</span>
+              <motion.div
+                animate={!loading && question.trim() && file ? { x: [0, 5, 0] } : {}}
+                transition={{ repeat: Infinity, repeatDelay: 3, duration: 0.5 }}
+              >
+                <FiSend />
+              </motion.div>
             </motion.button>
           </form>
         </div>

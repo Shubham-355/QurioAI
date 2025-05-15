@@ -1,8 +1,8 @@
 const express = require('express');
 const multer = require('multer');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const pdf = require('pdf-parse');
 const cors = require('cors');
+const { GoogleGenAI } = require('@google/genai');
 require('dotenv').config();
 
 const app = express();
@@ -11,7 +11,14 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.use(cors());
 app.use(express.json());
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+if (!process.env.GEMINI_API_KEY) {
+  console.error('ERROR: GEMINI_API_KEY is not set in your .env file');
+  process.exit(1);
+}
+
+console.log('API Key exists and starts with:', process.env.GEMINI_API_KEY.substring(0, 4) + '...');
+
+const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 let pdfContent = '';
 
@@ -39,18 +46,38 @@ app.post('/ask', async (req, res) => {
             return res.status(400).json({ error: 'No PDF content available' });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-        const prompt = `Based on the following content: "${pdfContent.substring(0, 30000)}"
-                       Please answer this question: ${question}`;
-
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
+        console.log('Sending prompt to Gemini API...');
         
-        res.json({ answer: response.text() });
+        const response = await genAI.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: `Based on the following content: "${pdfContent.substring(0, 30000)}"
+                      Please answer this question: ${question}`,
+            config: {
+                temperature: 0.4,
+                maxOutputTokens: 2048,
+            }
+        });
+        
+        console.log('Received response from Gemini API');
+        
+        res.json({ answer: response.text });
     } catch (error) {
         console.error('Error generating response:', error);
-        res.status(500).json({ error: 'Error generating response' });
+        
+        const errorDetails = {
+            message: error.message,
+            name: error.name,
+            stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+            code: error.code
+        };
+        
+        console.error('Detailed error:', JSON.stringify(errorDetails, null, 2));
+        
+        res.status(500).json({ 
+            error: 'Error generating response', 
+            details: error.message,
+            suggestion: 'Please verify your GEMINI_API_KEY is valid and the model "gemini-2.0-flash" is available for your account.'
+        });
     }
 });
 
