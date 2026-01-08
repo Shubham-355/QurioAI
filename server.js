@@ -49,7 +49,7 @@ app.post('/ask', async (req, res) => {
         console.log('Sending prompt to Gemini API...');
         
         const response = await genAI.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: "gemini-2.5-flash",
             contents: `Based on the following content: "${pdfContent.substring(0, 30000)}"
                       Please answer this question: ${question}`,
             config: {
